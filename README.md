@@ -24,14 +24,12 @@ class design
 chat
 - id
 - name
-- messages: List<Message>
-- particpants: List<User>
+- particpantIds: List<String> partcipantIds
 
 user
 - id
 - name
 - phone 
-- contactList: List<User>
 
 message
 - id
@@ -45,47 +43,65 @@ enum MessageStatus
 - DELIVERED
 
 class MessageRepository
-+ userToPendingMessage<string name, List<Message>)
+- chatToChatMessages <chatId, List<Message>)
+- userToPendingMessages <userId, List<Message>)
 + addPendingMessage(userId, Message)
 + fetchPendingMessages(userId)
 + deletePendingMessage(userId)
-+ saveMessage()
++ saveMessage(message)
++ getMessagesByChatId(chatId)
 
 class ChatRepository
-- userToChats: Map<userId, List<Chat>)
+- userToChats: Map<userId, List<String> chatIds)
 - chatIdToChat: Map<chatId, Chat)
-- getChatById(chatId)
-- getParticipants(chatId)
++ saveChat(chat)
++ getChatById(chatId)
++ getChatsByUserId(userId)
+// getParticipants(chatId)
 
-class DiscoveryController
-- userDiscoveryMap: Map<string, boolean>
-+ isUserDiscoverable(userId) -> boolean
+class SessionManager
+- onlineUsers: Set<String userId>
++ isUserOnline(userId) -> boolean
++ setOnline(userId)
++ setOffline(userId)
 
-class ChatController
-+ fetchMessagesByChatId(chatId) -> List<Message>
-+ fetchChatsByUserId(userId) -> List<Chat>
-+ createChat(List<User> particpants, name) -> Chat
-+ sendMessage(chatId, Message, senderId)  
+class ChatService
+// fetchMessagesByChatId(chatId) -> List<Message>
+// fetchChatsByUserId(userId) -> List<Chat>
++ createChat(chatId, name, Set<String> participantIds) -> Chat
++ sendMessage(chatId, msgId, content, senderId)  
+    chat = ChatRepository.getChatById(chatId), If null -> throw exception
     message = new Message(message)
-    chat = ChatRepository.getChatById(chatId)
+    MessageRepository.save(message)
     
-    participants = chat.getParticipants();
+    participantIds = chat.getParticipantIds();
 
     for p in participants:
         if p is sender
             continue
-        else if (isUserDiscoverable(p))
-            deliverMessage(p.id, Message)
-            sendDeliverAckToUser(p.id, senderId, Message)
-        else NotificationService.pushNotification(p.Id, Message)
-  
-+ fetchPendingMessages(userId) -> List<Message>
-+ deliverMessage(userId, Message) -> "Message delivered to userId" 
-+ sendDeliverAckToUser(receipient.Id, senderId, Message)
+        else if (isUserOnline(p))
+            // deliverMessage(p.id, Message)
+            // sendDeliverAckToUser(p.id, senderId, Message)
+            message.setStatus(Delivered)
+            print -> content
+        else
+          MessageRepository.addPendingMessage(p, message)
+          NotificationService.pushNotification(p, Message)
+ + userLogsIn(userId)
+       SessionManager.setOnline(userId)
+       List<Message> messages = MessageRepository.fetchAndDeletePendingMessage(userId)
+       messages -> setStatus = DELIVERED
+ + userLogsOut(userId)
+       SessionManager.setOffline(userId)
 
 NotificationService
 + sendPushNotification(userId, Message)
+
+SearchService
++ searchMessagesInChat(chatId, keyword)
+      MessageRepository.getMessagesByChatId(search by converting both content and keyword in lowercase using stream)
     
+<img width="1086" height="605" alt="image" src="https://github.com/user-attachments/assets/5408c479-22d3-4fcf-a2ca-43c3463145ea" />
 
 
 
